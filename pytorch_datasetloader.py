@@ -53,18 +53,18 @@ def saveimagesasnpy(dir='images/'):
             sqrsize = min(image.size)
             croptrans = transforms.CenterCrop((sqrsize,sqrsize))
             image = croptrans(image)
-        nimage = image.resize((192, 192), Image.NEAREST)
+        nimage = image.resize((128, 128), Image.NEAREST)
         nimage = nimage.convert('RGB')
         img = np.array(nimage)
         imgarr.append(img)
     imgarr = np.array(imgarr)
     # imgarr = np.moveaxis(imgarr,3,1)
-    np.save('picsle8_ImageArray_774RGB',imgarr)
-    np.save('picsle8_LabelArray_774',labels)
+    np.save('picsle8_ImageArray_774RGB_128',imgarr)
+    np.save('picsle8_LabelArray_774_128',labels)
 
 def loadnpyfiles():
-    npzimg = np.load('picsle8_ImageArray_774RGB.npy')
-    npzlbl = np.load('picsle8_LabelArray_774.npy')
+    npzimg = np.load('picsle8_ImageArray_774RGB_128.npy')
+    npzlbl = np.load('picsle8_LabelArray_774_128.npy')
     return npzimg, npzlbl
 
 ########################################### DATASET ################
@@ -86,8 +86,8 @@ class Picsle8DS(D.Dataset):
         #     self.filearray.append(fn)
         #     self.labels.append(0)
         # self.len = len(self.filearray)
-        self.imgarray = np.load('picsle8_ImageArray_774RGB.npy')
-        self.labels = np.load('picsle8_LabelArray_774.npy')
+        self.imgarray = np.load('picsle8_ImageArray_774RGB_128.npy')
+        self.labels = np.load('picsle8_LabelArray_774_128.npy')
         self.len = len(self.imgarray)
 
     def __getitem__(self, index):
@@ -109,34 +109,54 @@ class Picsle8DS(D.Dataset):
         """ Total number of samples in the dataset """
         return self.len
 
+saveimagesasnpy(dir='images/')
+
 ####################################################################
 
 
-def main_func():
-path = 'images/'
-# Simple dataset. Only save path to image and load it and transform to tensor when call __getitem__.
-pixelDSlist = Picsle8DS(path)
-# total images in set
-print(pixelDSlist.len,'images from the dataset')
-# divide dataset into training and validation subsets
-train_len = int(0.7*pixelDSlist.len)
-valid_len = pixelDSlist.len - train_len
-train, valid = D.random_split(pixelDSlist, lengths=[train_len, valid_len])
-len(train), len(valid)
-# Use the torch dataloader to iterate through the dataset
-trainloader = D.DataLoader(train, batch_size=32, shuffle=False, num_workers=0)
-validloader = D.DataLoader(valid, batch_size=32, shuffle=False, num_workers=0)
+# def main_func():
+# path = 'images/'
+# # Simple dataset. Only save path to image and load it and transform to tensor when call __getitem__.
+# pixelDSlist = Picsle8DS(path)
+# # total images in set
+# print(pixelDSlist.len,'images from the dataset')
+# # divide dataset into training and validation subsets
+# train_len = int(0.7*pixelDSlist.len)
+# valid_len = pixelDSlist.len - train_len
+# train, valid = D.random_split(pixelDSlist, lengths=[train_len, valid_len])
+# len(train), len(valid)
+# # Use the torch dataloader to iterate through the dataset
+# trainloader = D.DataLoader(train, batch_size=32, shuffle=False, num_workers=0)
+# validloader = D.DataLoader(valid, batch_size=32, shuffle=False, num_workers=0)
 
-# get some images
-dataiter_tr = iter(trainloader)
-dataiter_vl = iter(validloader)
-images_t, labels_t = dataiter_tr.next()
-images_v, labels_v = dataiter_vl.next()
+# # get some images
+# dataiter_tr = iter(trainloader)
+# dataiter_vl = iter(validloader)
+# images_t, labels_t = dataiter_tr.next()
+# images_v, labels_v = dataiter_vl.next()
 
-# show images and match labels 4 fun
-plt.figure(figsize=(16,8))
-torchimshow(torchvision.utils.make_grid(images_t))
-print('Train:',labels_t)
-plt.figure(figsize=(16,8))
-torchimshow(torchvision.utils.make_grid(images_v))
-print('Valid:',labels_v)
+# # show images and match labels 4 fun
+# plt.figure(figsize=(16,8))
+# torchimshow(torchvision.utils.make_grid(images_t))
+# print('Train:',labels_t)
+# plt.figure(figsize=(16,8))
+# torchimshow(torchvision.utils.make_grid(images_v))
+# print('Valid:',labels_v)
+
+
+def get_loaders(path,split_perc=0.7,batch_size=100):
+
+    # Simple dataset. Only save path to image and load it and transform to tensor when call __getitem__.
+    pixelDSlist = Picsle8DS(path)
+    # total images in set
+    print(pixelDSlist.len,'images from the dataset')
+    # divide dataset into training and validation subsets
+    train_len = int(split_perc*pixelDSlist.len)
+    valid_len = pixelDSlist.len - train_len
+    train, valid = D.random_split(pixelDSlist, lengths=[train_len, valid_len])
+    len(train), len(valid)
+    # Use the torch dataloader to iterate through the dataset
+    trainloader = D.DataLoader(train, batch_size=batch_size, shuffle=False, num_workers=0)
+    validloader = D.DataLoader(valid, batch_size=batch_size, shuffle=False, num_workers=0)
+
+    return trainloader, validloader
