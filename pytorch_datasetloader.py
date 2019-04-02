@@ -62,7 +62,7 @@ def saveimagesasnpy(dir='images/'):
     np.save('picsle8_ImageArray_774RGB',imgarr)
     np.save('picsle8_LabelArray_774',labels)
 
-def saveimagesasnpy_modular(dir='Pixelart', label, length=200):
+def saveimagesasnpy_modular(dir='Pixelart', label=1, length=200):
     filearray = []
     labels = []
     filenames = glob.glob(osp.join('images/'+dir+'/', '*.jpg'))
