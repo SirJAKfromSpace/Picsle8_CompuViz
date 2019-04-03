@@ -13,6 +13,7 @@ import glob
 import os.path as osp
 import pandas as pd
 import gc
+import random
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -53,7 +54,7 @@ def saveimagesasnpy(dir='images/'):
             sqrsize = min(image.size)
             croptrans = transforms.CenterCrop((sqrsize,sqrsize))
             image = croptrans(image)
-        nimage = image.resize((192, 192), Image.NEAREST)
+        nimage = image.resize((128, 128), Image.NEAREST)
         nimage = nimage.convert('RGB')
         img = np.array(nimage)
         imgarr.append(img)
@@ -62,14 +63,18 @@ def saveimagesasnpy(dir='images/'):
     np.save('picsle8_ImageArray_774RGB',imgarr)
     np.save('picsle8_LabelArray_774',labels)
 
-def saveimagesasnpy_modular(dir='Pixelart', label=1, length=200):
+def saveimagesasnpy_modular(dirname='Pixelart', label=1, length=200):
     filearray = []
     labels = []
-    filenames = glob.glob(osp.join('images/'+dir+'/', '*.jpg'))
+    filenames = glob.glob(osp.join('images/'+dirname+'/', '*.jpg'))
+    count = length
     for fn in filenames:
-        filearray.append(fn)
-        labels.append(label)
-    filearray = random.shuffle(filearray)
+        if count > 0:
+            filearray.append(fn)
+            labels.append(label)
+            count -= 1
+
+    random.shuffle(filearray)
     imgarr = []
     for index in range(0,length):
         image = Image.open(filearray[index])
@@ -77,19 +82,38 @@ def saveimagesasnpy_modular(dir='Pixelart', label=1, length=200):
             sqrsize = min(image.size)
             croptrans = transforms.CenterCrop((sqrsize,sqrsize))
             image = croptrans(image)
-        nimage = image.resize((192, 192), Image.NEAREST)
+        nimage = image.resize((128, 128), Image.NEAREST)
         nimage = nimage.convert('RGB')
         img = np.array(nimage)
         imgarr.append(img)
     imgarr = np.array(imgarr)
     # imgarr = np.moveaxis(imgarr,3,1)
-    np.save('picsle8_ImageArray_'+dir+'_'+length,imgarr)
-    np.save('picsle8_LabelArray_'+dir+'_'+length,labels)
+    np.save('picsle8_ImageArray_'+dirname+'_'+str(length),imgarr)
+    np.save('picsle8_LabelArray_'+dirname+'_'+str(length),labels)
 
 def loadnpyfiles(npyname):
     npzimg = np.load('picsle8_ImageArray_'+npyname+'.npy')
     npzlbl = np.load('picsle8_LabelArray_'+npyname+'.npy')
     return npzimg, npzlbl
+
+def convertimagestotensor(dirname='Pixelart'):
+    filearray = []
+    filenames = glob.glob(osp.join('images/'+dirname+'/', '*.jpg'))
+    for fn in filenames:
+        filearray.append(fn)
+    length = len(filearray)
+    imgarr = []
+    for index in range(0,length):
+        image = Image.open(filearray[index])
+        if image.size[0] != image.size[1]:
+            sqrsize = min(image.size)
+            croptrans = transforms.CenterCrop((sqrsize,sqrsize))
+            image = croptrans(image)
+        nimage = image.resize((128, 128), Image.NEAREST)
+        nimage = nimage.convert('RGB')
+        t = transforms.ToTensor()
+        img = t(nimage)
+        torch.save(img,'images/tensorfiles/'+dirname+'_'+str(index)+'.pt')
 
 ########################################### DATASET ################
 """ Swap commmented with active code in case of issues """
@@ -108,14 +132,14 @@ class Picsle8DS(D.Dataset):
         # for fn in filenames:
         #     self.filearray.append(fn)
         #     self.labels.append(0)
-        # self.len = len(self.filearray)
+
+        # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        # npimgarray = np.moveaxis(npimgarray,3,1)
+        # self.imgarray = torch.from_numpy(npimgarray).float().to(device)
         self.root = root
-        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        npimgarray = np.load('picsle8_ImageArray_'+npyname+'.npy')
-        self.labels = np.load('picsle8_LabelArray_'+npyname+'.npy')
-        self.len = len(self.imgarray)
-        npimgarray = np.moveaxis(npimgarray,3,1)
-        self.imgarray = torch.from_numpy(npimgarray).float().to(device)
+        self.imgarray = np.load('picsle8_ImageArray_'+root+'.npy')
+        self.labels = np.load('picsle8_LabelArray_'+root+'.npy')
+        self.len = len(self.labels)
 
     def __getitem__(self, index):
         """ Get a sample from the dataset """
@@ -183,3 +207,7 @@ def main_func():
     plt.figure(figsize=(16,8))
     torchimshow(torchvision.utils.make_grid(images_v))
     print('Valid:',labels_v)
+
+
+# saveimagesasnpy_modular()
+# convertimagestotensor('Pixelart')
