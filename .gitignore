@@ -1,6 +1,9 @@
 # PICSLE8
 NewData/
+images/
 *.pt
+*.npy
+*.pkl
 
 
 # Byte-compiled / optimized / DLL files

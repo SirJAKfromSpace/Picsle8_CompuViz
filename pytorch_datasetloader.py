@@ -46,7 +46,7 @@ def saveimagesasnpy(dir='images/'):
     for fn in filenames:
         filearray.append(fn)
         labels.append(1)
-        filenames = glob.glob(osp.join(dir+'Realpix/', '*.jpg'))
+    filenames = glob.glob(osp.join(dir+'Realpix/', '*.jpg'))
     for fn in filenames:
         filearray.append(fn)
         labels.append(0)
@@ -64,21 +64,23 @@ def saveimagesasnpy(dir='images/'):
         imgarr.append(img)
     imgarr = np.array(imgarr)
     # imgarr = np.moveaxis(imgarr,3,1)
-    np.save('picsle8_ImageArray_All_'+len(imgarr),imgarr)
-    np.save('picsle8_LabelArray_All_'+len(labels),labels)
+    lengthsave1 = str(len(imgarr))
+    lengthsave2 = str(len(labels))
+    np.save('picsle8_ImageArray_All_'+lengthsave1,imgarr)
+    np.save('picsle8_LabelArray_All_'+lengthsave2,labels)
 
-def saveimagesasnpy_modular(dir='Pixelart', name='Pixel', label=1, length=200):
+def saveimagesasnpy_modular(dir='Pixelart/', name='Pixel', label=1, length=200, shuffle=False):
     filearray = []
     labels = []
-    filenames = glob.glob(osp.join('images/'+dir+'/', '*.jpg'))
+    filenames = glob.glob(osp.join('images/'+dir, '*.jpg'))
     count = length
     for fn in filenames:
         if count > 0:
             filearray.append(fn)
             labels.append(label)
             count -= 1
-    random.shuffle(filearray)
-    # print(count, len(filearray))
+    if(shuffle):random.shuffle(filearray)
+    print(filearray[0])
     imgarr = []
     for index in range(0,length):
         image = Image.open(filearray[index])
@@ -94,6 +96,7 @@ def saveimagesasnpy_modular(dir='Pixelart', name='Pixel', label=1, length=200):
     # imgarr = np.moveaxis(imgarr,3,1)
     np.save('picsle8_ImageArray_'+name+'_'+str(length),imgarr)
     np.save('picsle8_LabelArray_'+name+'_'+str(length),labels)
+    print("saved")
 
 # ----------------------------------------------------------------
 
@@ -178,11 +181,11 @@ class Picsle8DS_Raw(D.Dataset):
         self.labels = []
         self.root = root
         self.transform = transforms.ToTensor()
-        filenames = glob.glob(osp.join(self.root+'Pixelart/', '*.jpg'))
+        filenames = glob.glob(osp.join('images/Pixelart/', '*.jpg'))
         for fn in filenames:
             self.filearray.append(fn)
             self.labels.append(1)
-        filenames = glob.glob(osp.join(self.root+'Realpix/', '*.jpg'))
+        filenames = glob.glob(osp.join('images/Realpix/', '*.jpg'))
         for fn in filenames:
             self.filearray.append(fn)
             self.labels.append(0)
@@ -214,11 +217,11 @@ class Picsle8DS_RawTensor(D.Dataset):
         self.labels = []
         self.root = root
         self.tens = transforms.ToTensor()
-        filenames = glob.glob(osp.join(self.root+'Pixelart/', '*.jpg'))
+        filenames = glob.glob(osp.join('images/Pixelart/', '*.jpg'))
         for fn in filenames:
             self.filearray.append(fn)
             self.labels.append(1)
-        filenames = glob.glob(osp.join(self.root+'Realpix/', '*.jpg'))
+        filenames = glob.glob(osp.join('images/Realpix/', '*.jpg'))
         for fn in filenames:
             self.filearray.append(fn)
             self.labels.append(0)
@@ -308,6 +311,8 @@ def main_func():
     torchimshow(torchvision.utils.make_grid(images_v))
     print('Valid:',labels_v)
 
-# tl, vl = get_loaders('Pixel_750', mode=1);    #mode 0/1 numpy+tensor
-# tl, vl = get_loaders('images/', mode=3);      #mode 2/3 raw+rawtensor
-# print(tl)
+# saveimagesasnpy_modular(dir='Canny/RealpixFlickr/', name='CannyRealpixFlickr', label=0, length=500, shuffle=False)
+# saveimagesasnpy_modular(dir='Canny/Pixelart_short/', name='CannyPixelartS', label=1, length=350, shuffle=False)
+#
+# imgarr,_ = loadnpyfiles('PixelartS_350')
+# print(imgarr[0].shape)
