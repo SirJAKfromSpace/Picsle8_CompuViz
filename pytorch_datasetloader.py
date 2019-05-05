@@ -256,7 +256,7 @@ class Picsle8DS_RawTensor(D.Dataset):
 
 ####################################################################
 
-def get_loaders(path,split_perc=0.7,batch_size=500,mode=0):
+def get_loaders(path,split_perc=0.7,batch_size=32,mode=0):
 
     # Simple dataset. Only save path to image and load it and transform to tensor when call getitem.
     if mode==0:
