@@ -67,7 +67,7 @@ def saveimagesasnpy(dir='images/'):
     np.save('picsle8_ImageArray_All_'+len(imgarr),imgarr)
     np.save('picsle8_LabelArray_All_'+len(labels),labels)
 
-def saveimagesasnpy_modular(path,name='Pixelart', label=1, length=200):
+def saveimagesasnpy_modular(path,name='Pixelart', label=1, length=200, shuffle=False):
     filearray = []
     labels = []
     filenames = glob.glob(osp.join(path, '*.jpg'))
@@ -77,7 +77,7 @@ def saveimagesasnpy_modular(path,name='Pixelart', label=1, length=200):
             filearray.append(fn)
             labels.append(label)
             count -= 1
-    random.shuffle(filearray)
+    if shuffle is True: random.shuffle(filearray) 
     # print(count, len(filearray))
     imgarr = []
     for index in range(0,length):
